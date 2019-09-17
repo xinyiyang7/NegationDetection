@@ -1,6 +1,12 @@
 
 import codecs
 # train_path = '/export/home/Dataset/negation/starsem-st-2012-data/cd-sco/corpus/training/SEM-2012-SharedTask-CD-SCO-training-09032012.txt'
+import logging
+
+logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+                    datefmt = '%m/%d/%Y %H:%M:%S',
+                    level = logging.INFO)
+logger = logging.getLogger(__name__)
 
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
