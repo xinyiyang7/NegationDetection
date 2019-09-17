@@ -1,5 +1,5 @@
 
-
+import codecs
 # train_path = '/export/home/Dataset/negation/starsem-st-2012-data/cd-sco/corpus/training/SEM-2012-SharedTask-CD-SCO-training-09032012.txt'
 
 class InputExample(object):
