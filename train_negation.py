@@ -76,7 +76,7 @@ class NegationModel(BertPreTrainedModel):
             scope_input_tensor = torch.cat((sequence_output, cue_labels[:,:, None].float()), 2)
         else:
             '''testing'''
-            pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2),dim=2)
+            pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2)[:,:,1:],dim=2)+1
             scope_input_tensor = torch.cat((sequence_output, pred_cue_labels[:,:, None].float()), 2)
 
         logits_scope = self.classifier_scope(scope_input_tensor) # batch, max_len, 4+1?
@@ -453,8 +453,8 @@ def main():
 
 
                     for logits, label_ids in zip([logits_cue, logits_scope], [cue_label_ids, scope_label_ids]):
-
-                        logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
+                        '''we do not want the predicted max label index is 0'''
+                        logits = torch.argmax(F.log_softmax(logits,dim=2)[:,:,1:],dim=2)+1 #(batch, max_len)
                         logits = logits.detach().cpu().numpy()
                         label_ids = label_ids.to('cpu').numpy()#(batch, max_len)
                         input_mask = input_mask.to('cpu').numpy()#(batch, max_len)
