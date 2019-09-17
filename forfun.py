@@ -204,9 +204,9 @@ def main():
     parser.add_argument("--data_dir",
                         default=None,
                         type=str,
-                        required=True,
+                        required=False,
                         help="The input data dir. Should contain the .tsv files (or other data files) for the task.")
-    parser.add_argument("--bert_model", default=None, type=str, required=True,
+    parser.add_argument("--bert_model", default=None, type=str, required=False,
                         help="Bert pre-trained model selected in the list: bert-base-uncased, "
                         "bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, "
                         "bert-base-multilingual-cased, bert-base-chinese.")
@@ -218,7 +218,7 @@ def main():
     parser.add_argument("--output_dir",
                         default=None,
                         type=str,
-                        required=True,
+                        required=False,
                         help="The output directory where the model predictions and checkpoints will be written.")
 
     ## Other parameters
