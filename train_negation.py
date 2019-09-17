@@ -23,7 +23,7 @@ from pytorch_transformers.optimization import AdamW
 from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 
-# from seqeval.metrics import classification_report
+from seqeval.metrics import classification_report
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
@@ -32,7 +32,7 @@ from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
 
-from preprocess_negation_shareddata import load_train_data, convert_examples_to_features
+from preprocess_negation_shareddata import load_train_data, load_test_data, convert_examples_to_features
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt = '%m/%d/%Y %H:%M:%S',
                     level = logging.INFO)
@@ -183,10 +183,9 @@ class NerProcessor(DataProcessor):
         """See base class."""
         return load_train_data(filename)
 
-    def get_dev_examples(self, data_dir):
+    def get_negation_test_examples(self, data_dir, filelist):
         """See base class."""
-        return self._create_examples(
-            self._read_tsv(os.path.join(data_dir, "valid.txt")), "dev")
+        return load_test_data(data_dir, filelist)
 
     def get_test_examples(self, data_dir):
         """See base class."""
@@ -380,6 +379,24 @@ def main():
 
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
 
+        '''load test data'''
+        eval_examples = processor.get_negation_test_examples('/export/home/Dataset/negation/starsem-st-2012-data/cd-sco/corpus/test-gold', ['SEM-2012-SharedTask-CD-SCO-test-cardboard-GOLD.txt', 'SEM-2012-SharedTask-CD-SCO-test-circle-GOLD.txt'])
+        eval_features = convert_examples_to_features(eval_examples, label_list, args.max_seq_length, tokenizer)
+        logger.info("***** Running evaluation *****")
+        logger.info("  Num examples = %d", len(eval_examples))
+        logger.info("  Batch size = %d", args.eval_batch_size)
+        all_input_ids = torch.tensor([f.input_ids for f in eval_features], dtype=torch.long)
+        all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
+        all_segment_ids = torch.tensor([f.segment_ids for f in eval_features], dtype=torch.long)
+        all_cue_label_ids = torch.tensor([f.cue_label_ids for f in eval_features], dtype=torch.long)
+        all_scope_label_ids = torch.tensor([f.scope_label_ids for f in eval_features], dtype=torch.long)
+        all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
+        all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
+        eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_cue_label_ids, all_scope_label_ids,all_valid_ids,all_lmask_ids)
+        eval_sampler = SequentialSampler(eval_data)
+        eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
+
+
         model.train()
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
             nb_tr_examples, nb_tr_steps = 0, 0
@@ -405,66 +422,64 @@ def main():
 
 
 
-    # if args.do_eval and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
-    #     eval_examples = processor.get_test_examples(args.data_dir)
-    #     eval_features = convert_examples_to_features(eval_examples, label_list, args.max_seq_length, tokenizer)
-    #     logger.info("***** Running evaluation *****")
-    #     logger.info("  Num examples = %d", len(eval_examples))
-    #     logger.info("  Batch size = %d", args.eval_batch_size)
-    #     all_input_ids = torch.tensor([f.input_ids for f in eval_features], dtype=torch.long)
-    #     all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
-    #     all_segment_ids = torch.tensor([f.segment_ids for f in eval_features], dtype=torch.long)
-    #     all_label_ids = torch.tensor([f.label_id for f in eval_features], dtype=torch.long)
-    #     all_valid_ids = torch.tensor([f.valid_ids for f in eval_features], dtype=torch.long)
-    #     all_lmask_ids = torch.tensor([f.label_mask for f in eval_features], dtype=torch.long)
-    #     eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
-    #     # Run prediction for full data
-    #     eval_sampler = SequentialSampler(eval_data)
-    #     eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
-    #     model.eval()
-    #     eval_loss, eval_accuracy = 0, 0
-    #     nb_eval_steps, nb_eval_examples = 0, 0
-    #     y_true = []
-    #     y_pred = []
-    #     label_map = {i : label for i, label in enumerate(label_list,1)}
-    #     for input_ids, input_mask, segment_ids, label_ids,valid_ids,l_mask in tqdm(eval_dataloader, desc="Evaluating"):
-    #         input_ids = input_ids.to(device)
-    #         input_mask = input_mask.to(device)
-    #         segment_ids = segment_ids.to(device)
-    #         valid_ids = valid_ids.to(device)
-    #         label_ids = label_ids.to(device)
-    #         l_mask = l_mask.to(device)
-    #
-    #         with torch.no_grad():
-    #             logits = model(input_ids, segment_ids, input_mask,valid_ids=valid_ids,attention_mask_label=l_mask)
-    #
-    #         logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2)
-    #         logits = logits.detach().cpu().numpy()
-    #         label_ids = label_ids.to('cpu').numpy()
-    #         input_mask = input_mask.to('cpu').numpy()
-    #
-    #         for i, label in enumerate(label_ids):
-    #             temp_1 = []
-    #             temp_2 = []
-    #             for j,m in enumerate(label):
-    #                 if j == 0:
-    #                     continue
-    #                 elif label_ids[i][j] == len(label_map):
-    #                     y_true.append(temp_1)
-    #                     y_pred.append(temp_2)
-    #                     break
-    #                 else:
-    #                     temp_1.append(label_map[label_ids[i][j]])
-    #                     temp_2.append(label_map[logits[i][j]])
-    #
-    #     report = classification_report(y_true, y_pred,digits=4)
-    #     logger.info("\n%s", report)
-    #     output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
-    #     with open(output_eval_file, "w") as writer:
-    #         logger.info("***** Eval results *****")
-    #         logger.info("\n%s", report)
-    #         writer.write(report)
+                '''testing'''
+                model.eval()
+                eval_loss, eval_accuracy = 0, 0
+                nb_eval_steps, nb_eval_examples = 0, 0
+                y_true = []
+                y_pred = []
+                label_map = {i : label for i, label in enumerate(label_list,1)}
+                for input_ids, input_mask, segment_ids, cue_label_ids,scope_label_ids,valid_ids,l_mask in tqdm(eval_dataloader, desc="Evaluating"):
+                    input_ids = input_ids.to(device)
+                    input_mask = input_mask.to(device)
+                    segment_ids = segment_ids.to(device)
+                    valid_ids = valid_ids.to(device)
+                    cue_label_ids = cue_label_ids.to(device)
+                    scope_label_ids = scope_label_ids.to(device)
+                    l_mask = l_mask.to(device)
+
+                    with torch.no_grad():
+                        '''
+                        model(input_ids, segment_ids, input_mask, cue_label_ids, scope_label_ids,valid_ids,l_mask)
+                        '''
+                        logits_cue, logits_scope = model(input_ids, segment_ids, input_mask,valid_ids=valid_ids,attention_mask_label=l_mask)
+
+
+                    for logits, label_ids in zip([logits_cue, logits_scope], [cue_label_ids, scope_label_ids]):
+
+                        logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
+                        logits = logits.detach().cpu().numpy()
+                        label_ids = label_ids.to('cpu').numpy()#(batch, max_len)
+                        input_mask = input_mask.to('cpu').numpy()#(batch, max_len)
+
+                        for i, label in enumerate(label_ids):
+                            '''each sentence'''
+                            temp_1 = [] # gold
+                            temp_2 = [] # pred
+                            for j,m in enumerate(label):
+                                '''each word'''
+                                if j == 0: # is a pad
+                                    continue
+                                elif label_ids[i][j] == len(label_map):
+                                    '''this means the gold label is [SEP], the end of sent'''
+                                    y_true.append(temp_1)
+                                    y_pred.append(temp_2)
+                                    break
+                                else:
+                                    temp_1.append(label_map[label_ids[i][j]])
+                                    temp_2.append(label_map[logits[i][j]])
+
+                report = classification_report(y_true, y_pred,digits=4)
+                logger.info("\n%s", report)
+                output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
+                with open(output_eval_file, "w") as writer:
+                    logger.info("***** Eval results *****")
+                    logger.info("\n%s", report)
+                    writer.write(report)
 
 
 if __name__ == "__main__":
     main()
+
+
+#CUDA_VISIBLE_DEVICES=2 python -u train_negation.py --task_name ner --do_train --do_lower_case --bert_model bert-large-uncased --learning_rate 2e-5 --num_train_epochs 3 --data_dir '' --output_dir ''

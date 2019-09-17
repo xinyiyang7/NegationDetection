@@ -96,6 +96,73 @@ def load_train_data(train_path):
     print('load over, training size:', len(examples), 'sent size:', sent_size+1)
     return examples
 
+def load_test_data(train_path, filelist):
+
+    # sents = []
+    # poses = []
+    # cues = []
+    # scopes = []
+
+
+    sent_size = 0
+    examples = []
+    instance_size = 0
+    for fil in filelist:
+        line_co = 0
+        readfile = codecs.open(train_path+'/'+fil, 'r', 'utf-8')
+        for line in readfile:
+            if line_co == 0:
+                line_group = []
+            elif len(line.strip())>0:
+                line_group.append(line.strip())
+            else:
+                sent_size+=1
+                '''preprocess this sentence'''
+                assert len(line_group)>0
+                negation_size = (len(line_group[0].split('\t')) - 7)//3
+                if negation_size > 0:
+                    for i in range(negation_size):
+                        '''for each cue and scope, we create an training instance'''
+                        sent = []
+                        pos = []
+                        cue = []
+                        scope = []
+                        for subline in line_group:
+                            parts = subline.strip().split('\t')
+                            # has_negation = True
+                            sent.append(parts[3])
+                            pos.append(parts[5])
+                            cue.append('0' if parts[7+i*3]=='_' else '1')
+                            scope.append('0' if parts[8+i*3]=='_' else '1')
+
+
+                        guid = "train-"+str(instance_size)
+                        examples.append(
+                            InputExample(guid=guid, text=' '.join(sent), cue_labels=cue, scope_labels=scope))
+                        instance_size+=1
+                else:
+                    sent = []
+                    pos = []
+                    cue = []
+                    scope = []
+                    for subline in line_group:
+                        parts = subline.strip().split('\t')
+                        # has_negation = True
+                        sent.append(parts[3])
+                        pos.append(parts[5])
+                        cue.append('0')
+                        scope.append('0')
+                    guid = "train-"+str(instance_size)
+                    examples.append(
+                        InputExample(guid=guid, text=' '.join(sent), cue_labels=cue, scope_labels=scope))
+                    instance_size+=1
+                '''create empty for next sentence'''
+                line_group = []
+            line_co+=1
+        readfile.close()
+    print('load over, test size:', len(examples), 'sent size:', sent_size+1)
+    return examples
+
 class InputFeatures(object):
     """A single set of features of data."""
 
