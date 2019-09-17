@@ -300,13 +300,6 @@ def main():
     parser.add_argument('--server_port', type=str, default='', help="Can be used for distant debugging.")
     args = parser.parse_args()
 
-    # if args.server_ip and args.server_port:
-    #     # Distant debugging - see https://code.visualstudio.com/docs/python/debugging#_attach-to-a-local-script
-    #     import ptvsd
-    #     print("Waiting for debugger attach")
-    #     ptvsd.enable_attach(address=(args.server_ip, args.server_port), redirect_output=True)
-    #     ptvsd.wait_for_attach()
-
     processors = {"ner":NerProcessor}
 
     if args.local_rank == -1 or args.no_cuda:
@@ -348,8 +341,6 @@ def main():
     if args.local_rank != -1:
         num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
 
-    # Prepare model
-    # cache_dir = args.cache_dir if args.cache_dir else os.path.join(str(PYTORCH_PRETRAINED_BERT_CACHE), 'distributed_{}'.format(args.local_rank))
     model = NegationModel.from_pretrained(pretrain_model_dir,
               # cache_dir=cache_dir,
               num_labels = num_labels)
@@ -364,10 +355,6 @@ def main():
         {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
         ]
 
-    # optimizer = BertAdam(optimizer_grouped_parameters,
-    #                      lr=args.learning_rate,
-    #                      warmup=args.warmup_proportion,
-    #                      t_total=num_train_optimization_steps)
     optimizer = AdamW(optimizer_grouped_parameters,
                              lr=args.learning_rate)
     global_step = 0
@@ -395,7 +382,6 @@ def main():
 
         model.train()
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
-            tr_loss = 0
             nb_tr_examples, nb_tr_steps = 0, 0
             for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration")):
                 batch = tuple(t.to(device) for t in batch)
