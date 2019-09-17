@@ -20,7 +20,7 @@ import torch.nn.functional as F
 
 from pytorch_transformers.tokenization_bert import BertTokenizer
 from pytorch_transformers.optimization import AdamW
-from pytorch_transformers.modeling_bert import BertPreTrainedModel
+from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 
 # from seqeval.metrics import classification_report
