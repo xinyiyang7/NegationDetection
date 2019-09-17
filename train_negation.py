@@ -53,7 +53,7 @@ class NegationModel(BertPreTrainedModel):
         '''
         valid_ids: batch*max_len
         '''
-        outputs = self.bert(input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False)
+        outputs = self.bert(input_ids, token_type_ids, attention_mask)
         sequence_output = outputs[0] # the last-layer hidden states
         batch_size,max_len,feat_dim = sequence_output.shape
         '''even though bert outputs hidden state for each subtoken, we only select the hidden states of
