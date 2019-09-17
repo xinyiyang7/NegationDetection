@@ -21,7 +21,7 @@ import torch.nn.functional as F
 
 from pytorch_transformers.tokenization_bert import BertTokenizer
 from pytorch_transformers.optimization import AdamW
-from pytorch_transformers.modeling_bert import BertPreTrainedModel
+from pytorch_transformers.modeling_bert import BertPreTrainedModel,BertModel
 
 
 # from seqeval.metrics import classification_report
@@ -327,10 +327,15 @@ def main():
 
     pretrain_model_dir = 'bert-base-uncased'
     tokenizer = BertTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
+    model = BertModel.from_pretrained(pretrain_model_dir,
+                                    output_hidden_states=True,
+                                    output_attentions=True)
     print(tokenizer.tokenize('unfamiliar'))
     print(tokenizer.tokenize('disjoint'))
     print(tokenizer.tokenize("Let's see all hidden-states and attentions on this text"))
-
+    input_ids = torch.tensor([tokenizer.encode("Let's see all hidden-states and attentions on this text")])
+    all_hidden_states, all_attentions = model(input_ids)[-2:]
+    print(all_hidden_states.shape)
 
 if __name__ == "__main__":
     main()
