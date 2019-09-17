@@ -329,7 +329,7 @@ def main():
     tokenizer = BertTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
     print(tokenizer.tokenize('unfamiliar'))
     print(tokenizer.tokenize('disjoint'))
-    print(tokenizer.tokenize('cannot'))
+    print(tokenizer.tokenize("Let's see all hidden-states and attentions on this text"))
 
 
 if __name__ == "__main__":
