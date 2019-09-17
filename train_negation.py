@@ -33,7 +33,7 @@ from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 
 
-from preprocess_negation_shareddata import load_train_data
+from preprocess_negation_shareddata import load_train_data, convert_examples_to_features
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                     datefmt = '%m/%d/%Y %H:%M:%S',
                     level = logging.INFO)
@@ -50,13 +50,17 @@ class NegationModel(BertPreTrainedModel):
         self.classifier_scope = nn.Linear(config.hidden_size+1, config.num_labels)
 
         self.init_weights()
-    def forward(self, input_ids, token_type_ids=None, attention_mask=None, cue_labels=None,valid_ids=None,attention_mask_label=None):
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, cue_labels=None,scope_labels=None,valid_ids=None,attention_mask_label=None):
         '''
         valid_ids: batch*max_len
         '''
         outputs = self.bert(input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False)
         sequence_output = outputs[0] # the last-layer hidden states
         batch_size,max_len,feat_dim = sequence_output.shape
+        '''even though bert outputs hidden state for each subtoken, we only select the hidden states of
+        the first subtoken to classify
+
+        '''
         valid_output = torch.zeros(batch_size,max_len,feat_dim,dtype=torch.float32,device='cuda')
         for i in range(batch_size):
             jj = -1
@@ -67,25 +71,33 @@ class NegationModel(BertPreTrainedModel):
                         valid_output[i][jj] = sequence_output[i][j]
         sequence_output = self.dropout(valid_output)
 
-        logits_cue = self.classifier_cue(sequence_output) # batch, max_len, 2 or 3?
+        logits_cue = self.classifier_cue(sequence_output) # batch, max_len, 4+1?
         scope_input_tensor = torch.cat((sequence_output, cue_labels[:,:, None]), 2)
-        logits_scope = self.classifier_scope(sequence_output)
-        return logits_cue,logits_scope
+        logits_scope = self.classifier_scope(sequence_output) # batch, max_len, 4+1?
 
-        # if labels is not None:
-        #     loss_fct = CrossEntropyLoss(ignore_index=0)
-        #     # Only keep active parts of the loss
-        #     attention_mask_label = None
-        #     if attention_mask_label is not None:
-        #         active_loss = attention_mask_label.view(-1) == 1
-        #         active_logits = logits.view(-1, self.num_labels)[active_loss]
-        #         active_labels = labels.view(-1)[active_loss]
-        #         loss = loss_fct(active_logits, active_labels)
-        #     else:
-        #         loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-        #     return loss
-        # else:
-        #     return logits
+
+        if cue_labels is not None:
+            loss_fct = CrossEntropyLoss(ignore_index=0)
+            # Only keep active parts of the loss
+            # attention_mask_label = None
+            if attention_mask_label is not None:
+                active_loss = attention_mask_label.view(-1) == 1
+                '''select the prob vector of corresponding words'''
+                active_logits_cue = logits_cue.view(-1, self.num_labels)[active_loss]
+                '''select the gold label of corresponding words'''
+                active_labels_cue = cue_labels.view(-1)[active_loss]
+                loss_cue = loss_fct(active_logits_cue, active_labels_cue)
+
+                '''scope loss'''
+                active_logits_scope = logits_scope.view(-1, self.num_labels)[active_loss]
+                '''select the gold label of corresponding words'''
+                active_labels_scope = scope_labels.view(-1)[active_loss]
+                loss_scope = loss_fct(active_logits_scope, active_labels_scope)
+            # else:
+            #     loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+            return loss_cue, loss_scope
+        else:
+            return logits_cue,logits_scope
 
 
 class InputExample(object):
@@ -322,7 +334,7 @@ def main():
 
     processor = processors[task_name]()
     label_list = processor.get_labels()
-    num_labels = len(label_list)# + 1
+    num_labels = len(label_list) + 1 #consider the 0 for padded label
 
 
     pretrain_model_dir = 'bert-base-uncased'
@@ -373,10 +385,11 @@ def main():
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
-        all_label_ids = torch.tensor([f.label_id for f in train_features], dtype=torch.long)
+        all_cue_label_ids = torch.tensor([f.cue_label_ids for f in train_features], dtype=torch.long)
+        all_scope_label_ids = torch.tensor([f.scope_label_ids for f in train_features], dtype=torch.long)
         all_valid_ids = torch.tensor([f.valid_ids for f in train_features], dtype=torch.long)
         all_lmask_ids = torch.tensor([f.label_mask for f in train_features], dtype=torch.long)
-        train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids,all_valid_ids,all_lmask_ids)
+        train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_cue_label_ids, all_scope_label_ids,all_valid_ids,all_lmask_ids)
         train_sampler = RandomSampler(train_data)
 
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
@@ -387,9 +400,10 @@ def main():
             nb_tr_examples, nb_tr_steps = 0, 0
             for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration")):
                 batch = tuple(t.to(device) for t in batch)
-                input_ids, input_mask, segment_ids, label_ids, valid_ids,l_mask = batch
-                loss = model(input_ids, segment_ids, input_mask, label_ids,valid_ids,l_mask)
+                input_ids, input_mask, segment_ids, cue_label_ids, scope_label_ids, valid_ids,l_mask = batch
+                loss_cue, loss_scope = model(input_ids, segment_ids, input_mask, cue_label_ids, scope_label_ids,valid_ids,l_mask)
 
+                loss = loss_cue + loss_scope
                 if args.gradient_accumulation_steps > 1:
                     loss = loss / args.gradient_accumulation_steps
 
@@ -402,6 +416,7 @@ def main():
                     optimizer.step()
                     optimizer.zero_grad()
                     global_step += 1
+                print('mean loss:', tr_loss/global_step)
 
 
 
