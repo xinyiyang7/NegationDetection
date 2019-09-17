@@ -55,8 +55,8 @@ def load_train_data(train_path):
                         # has_negation = True
                         sent.append(parts[3])
                         pos.append(parts[5])
-                        cue.append(0 if parts[7+i*3]=='_' else 1)
-                        scope.append(0 if parts[8+i*3]=='_' else 1)
+                        cue.append('0' if parts[7+i*3]=='_' else '1')
+                        scope.append('0' if parts[8+i*3]=='_' else '1')
 
 
                     guid = "train-"+str(instance_size)
@@ -73,8 +73,8 @@ def load_train_data(train_path):
                     # has_negation = True
                     sent.append(parts[3])
                     pos.append(parts[5])
-                    cue.append(0)
-                    scope.append(0)
+                    cue.append('0')
+                    scope.append('0')
                 # sents.append(sent)
                 # poses.append(pos)
                 # cues.append(cue)
