@@ -333,7 +333,7 @@ def main():
     print(tokenizer.tokenize('unfamiliar'))
     print(tokenizer.tokenize('disjoint'))
     print(tokenizer.tokenize("Let's see all hidden-states and attentions on this text"))
-    input_ids = torch.tensor([tokenizer.encode("Let's see all hidden-states and attentions on this text")])
+    input_ids = torch.tensor(tokenizer.convert_tokens_to_ids("Let's see all hidden-states and attentions on this text".split()))
     all_hidden_states, all_attentions = model(input_ids)[-2:]
     print(all_hidden_states[-1].shape)
 
