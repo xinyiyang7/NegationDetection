@@ -335,7 +335,7 @@ def main():
     print(tokenizer.tokenize("Let's see all hidden-states and attentions on this text"))
     input_ids = torch.tensor([tokenizer.encode("Let's see all hidden-states and attentions on this text")])
     all_hidden_states, all_attentions = model(input_ids)[-2:]
-    print(all_hidden_states.shape)
+    print(all_hidden_states[-1].shape)
 
 if __name__ == "__main__":
     main()
