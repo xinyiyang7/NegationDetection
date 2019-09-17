@@ -328,6 +328,8 @@ def main():
     pretrain_model_dir = 'bert-base-uncased'
     tokenizer = BertTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
     print(tokenizer.tokenize('unfamiliar'))
+    print(tokenizer.tokenize('disjoint'))
+    print(tokenizer.tokenize('cannot'))
 
 
 if __name__ == "__main__":
