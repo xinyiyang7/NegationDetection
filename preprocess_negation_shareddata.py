@@ -219,8 +219,8 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
             logger.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
             logger.info(
                     "segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
-            logger.info("cue_labels: %s (id = %d)" % (example.cue_labels, cue_label_ids))
-            logger.info("scope_labels: %s (id = %d)" % (example.scope_labels, scope_label_ids))
+            # logger.info("cue_labels: %s (id = %d)" % (example.cue_labels, cue_label_ids))
+            # logger.info("scope_labels: %s (id = %d)" % (example.scope_labels, scope_label_ids))
 
         features.append(
                 InputFeatures(input_ids=input_ids,
