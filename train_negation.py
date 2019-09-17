@@ -72,7 +72,7 @@ class NegationModel(BertPreTrainedModel):
 
         logits_cue = self.classifier_cue(sequence_output) # batch, max_len, 4+1?
         scope_input_tensor = torch.cat((sequence_output, cue_labels[:,:, None].float()), 2)
-        logits_scope = self.classifier_scope(sequence_output) # batch, max_len, 4+1?
+        logits_scope = self.classifier_scope(scope_input_tensor) # batch, max_len, 4+1?
 
 
         if cue_labels is not None:
