@@ -24,7 +24,7 @@ from pytorch_transformers.optimization import AdamW
 from pytorch_transformers.modeling_bert import BertPreTrainedModel
 
 
-from seqeval.metrics import classification_report
+# from seqeval.metrics import classification_report
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,

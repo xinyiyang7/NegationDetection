@@ -24,7 +24,7 @@ from pytorch_transformers.optimization import AdamW
 from pytorch_transformers.modeling_bert import BertPreTrainedModel
 
 
-from seqeval.metrics import classification_report
+# from seqeval.metrics import classification_report
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
@@ -327,7 +327,6 @@ def main():
 
     pretrain_model_dir = 'bert-base-uncased'
     tokenizer = BertTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
-
     print(tokenizer.tokenize('unfamiliar'))
 
 
