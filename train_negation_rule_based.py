@@ -6,7 +6,7 @@ from nltk import pos_tag
 from nltk.sentiment.util import mark_negation
 import codecs
 import argparse
-
+import string
 NEGATION_ADVERBS = ["no", "without", "nil","not", "n't", "never", "none", "neith", "nor", "non"]
 NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
 
@@ -21,7 +21,7 @@ def scope_detection(word_pos_list, neg_id):
     # print(word_pos_list,  neg_id)
     indictors = []
     for id, pair in enumerate(word_pos_list):
-        if pair[1] in set(['JJ', 'JJR', 'JJS', 'RB', 'RBR', 'DT', 'NN','RBS', 'TO', 'IN', 'VB','VBD','VBG','VBN','VBP','VBZ']) and id !=neg_id:
+        if pair[1] in set(['JJ', 'JJR', 'JJS', 'RB', 'RBR', 'DT', 'NN','RBS', 'TO', 'IN', 'VB','VBD','VBG','VBN','VBP','VBZ']) and id !=neg_id and (pair[0] not in string.punctuation):
             indictors.append(1)
         else:
             indictors.append(0)
