@@ -28,8 +28,8 @@ def scope_detection(word_pos_list, neg_id):
     print('right_most:',right_most)
     scope_list = []
     for i in range(right_most, len(word_pos_list)):
-        if indictors[right_most] == 1:
-            scope_list.append(word_pos_list[right_most][0])
+        if indictors[i] == 1:
+            scope_list.append(word_pos_list[i][0])
     # if neg_id - left_most > right_most - neg_id:
     #     for i in range(right_most, len(word_pos_list)):
     #         if word_pos_list[right_most][1] == 1:
