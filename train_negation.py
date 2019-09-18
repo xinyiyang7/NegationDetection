@@ -485,14 +485,14 @@ def main():
                                     break
                                 else:
                                     temp_1.append(label_map[label_ids[i][j]])
-                                    temp_2.append(1 if logits[i][j][0]>0.5 else 0)
+                                    temp_2.append('1' if logits[i][j][0]>0.5 else '0')
                         task+=1
 
-                print('y_pred_cue:', y_pred_cue)
-                print('y_true_cue:', y_true_cue)
+                # print('y_pred_cue:', y_pred_cue)
+                # print('y_true_cue:', y_true_cue)
                 report_cue = classification_report(y_true_cue, y_pred_cue,digits=4)
                 logger.info("\ncue%s", report_cue)
-                print('y_pred_scope:', y_pred_scope)
+                # print('y_pred_scope:', y_pred_scope)
                 report_scope = classification_report(y_true_scope, y_pred_scope,digits=4)
                 logger.info("\nscope%s", report_scope)
 
