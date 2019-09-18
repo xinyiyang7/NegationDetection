@@ -437,7 +437,7 @@ def main():
                 nb_eval_steps, nb_eval_examples = 0, 0
                 y_true = []
                 y_pred = []
-                label_map = {i : label for i, label in enumerate(label_list,1)}
+                label_map = {i : label for i, label in enumerate(label_list)}
                 for input_ids, input_mask, segment_ids, cue_label_ids,scope_label_ids,valid_ids,l_mask in tqdm(eval_dataloader, desc="Evaluating"):
                     input_ids = input_ids.to(device)
                     input_mask = input_mask.to(device)
