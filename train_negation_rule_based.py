@@ -95,6 +95,6 @@ def negation_detection(strr):
 
 
 if __name__ == "__main__":
-    sents = ['we do not like the dog.', 'I hate to eat egg', 'today is very good']
+    sents = ['we do not like the dog.', 'I hate to eat egg', 'today is very good', 'i am unhappy today, so I would not go there.']
     for sent in sents:
         negation_detection(sent)
