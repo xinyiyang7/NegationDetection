@@ -57,11 +57,26 @@ def scope_detection(word_pos_list, neg_id):
 def negation_detection(strr):
     strr = strr.lower()
     wordlist = word_tokenize(strr)
-    print('mark_negation:', mark_negation(wordlist))
+    nltk_neg_mark_list = mark_negation(wordlist))
+    nltk_start = -1
+    nltk_end =-1
+
+    for idd, word in enumerate(nltk_neg_mark_list):
+        if word.find('_NEG') > 0:
+            nltk_end = idd
+            if nltk_start == -1:
+                nltk_start = idd
+    nltk_end+=1
+    if nltk_end > nltk_start:
+        nltk_find = True
+    else:
+        nltk_find = False
+
     word_pos_list = pos_tag(wordlist)
     # print('wordlist:', wordlist)
     # print('word_pos_list:', word_pos_list)
     assert len(wordlist) ==  len(word_pos_list)
+    fine_negation = False
     for id, pair in enumerate(word_pos_list):
         word = pair[0]
         pos = pair[1]
@@ -69,12 +84,16 @@ def negation_detection(strr):
             print('negate word:', word)
             scope_tuple = scope_detection(word_pos_list, id)
             print('scope:', wordlist[scope_tuple[0]: scope_tuple[1]])
+            fine_negation = True
+    if fine_negation is False and nltk_find is False:
+        print('no negation detected')
+
 
 
 
 
 
 if __name__ == "__main__":
-    sents = ['we do not like the dog.', 'I hate to eat egg']
+    sents = ['we do not like the dog.', 'I hate to eat egg', 'today is very good']
     for sent in sents:
         negation_detection(sent)
