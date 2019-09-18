@@ -93,13 +93,13 @@ class NegationModel(BertPreTrainedModel):
                 active_logits_cue = logits_cue.view(-1, self.num_labels)[:,1][active_loss]
                 '''select the gold label of corresponding words'''
                 active_labels_cue = cue_labels.view(-1)[active_loss]
-                loss_cue = loss_fct(active_logits_cue, active_labels_cue)
+                loss_cue = loss_fct(active_logits_cue, active_labels_cue.float())
 
                 '''scope loss'''
                 active_logits_scope = logits_scope.view(-1, self.num_labels)[:,1][active_loss]
                 '''select the gold label of corresponding words'''
                 active_labels_scope = scope_labels.view(-1)[active_loss]
-                loss_scope = loss_fct(active_logits_scope, active_labels_scope)
+                loss_scope = loss_fct(active_logits_scope, active_labels_scope.float())
             # else:
             #     loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
             return loss_cue, loss_scope
