@@ -45,8 +45,8 @@ class NegationModel(BertPreTrainedModel):
 
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.classifier_cue = nn.Linear(config.hidden_size, config.num_labels)
-        self.classifier_scope = nn.Linear(config.hidden_size+1, config.num_labels)
+        self.classifier_cue = nn.Linear(config.hidden_size, 1)#config.num_labels)
+        self.classifier_scope = nn.Linear(config.hidden_size+1, 1)#config.num_labels)
 
         self.init_weights()
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, cue_labels=None,scope_labels=None,valid_ids=None,attention_mask_label=None):
@@ -76,7 +76,9 @@ class NegationModel(BertPreTrainedModel):
             scope_input_tensor = torch.cat((sequence_output, cue_labels[:,:, None].float()), 2)
         else:
             '''testing'''
-            pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2),dim=2)
+            # pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2),dim=2)
+            pred_cue_labels = nn.Sigmoid()(logits_cue) > 0.2
+
             scope_input_tensor = torch.cat((sequence_output, pred_cue_labels[:,:, None].float()), 2)
 
         logits_scope = self.classifier_scope(scope_input_tensor) # batch, max_len, 4+1?
@@ -90,13 +92,13 @@ class NegationModel(BertPreTrainedModel):
             if attention_mask_label is not None:
                 active_loss = attention_mask_label.view(-1) == 1
                 '''select the prob of label 1'''
-                active_logits_cue = logits_cue.view(-1, self.num_labels)[:,1][active_loss]
+                active_logits_cue = logits_cue.view(-1)[active_loss]
                 '''select the gold label of corresponding words'''
                 active_labels_cue = cue_labels.view(-1)[active_loss]
                 loss_cue = loss_fct(active_logits_cue, active_labels_cue.float())
 
                 '''scope loss'''
-                active_logits_scope = logits_scope.view(-1, self.num_labels)[:,1][active_loss]
+                active_logits_scope = logits_scope.view(-1)[active_loss]
                 '''select the gold label of corresponding words'''
                 active_labels_scope = scope_labels.view(-1)[active_loss]
                 loss_scope = loss_fct(active_logits_scope, active_labels_scope.float())
@@ -427,7 +429,7 @@ def main():
                     optimizer.step()
                     optimizer.zero_grad()
                     global_step += 1
-                print('mean loss:', tr_loss/global_step)
+                print('\nmean loss:', tr_loss/global_step)
 
 
 
@@ -458,7 +460,7 @@ def main():
                     task = 0
                     for logits, label_ids in zip([logits_cue, logits_scope], [cue_label_ids, scope_label_ids]):
                         '''we do not want the predicted max label index is 0'''
-                        logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
+                        logits = nn.Sigmoid()(logits)# torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
                         logits = logits.detach().cpu().numpy()
                         label_ids = label_ids.to('cpu').numpy()#(batch, max_len)
                         # l_mask = l_mask.to('cpu').numpy()#(batch, max_len)
@@ -482,7 +484,7 @@ def main():
                                     break
                                 else:
                                     temp_1.append(label_map[label_ids[i][j]])
-                                    temp_2.append(label_map[logits[i][j]])
+                                    temp_2.append(logits[i][j]>0.2)
                         task+=1
 
                 report_cue = classification_report(y_true_cue, y_pred_cue,digits=4)
