@@ -4,6 +4,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 from nltk.sentiment.util import mark_negation
+import codecs
 
 NEGATION_ADVERBS = ["no", "without", "nil","not", "n't", "never", "none", "neith", "nor", "non"]
 NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
