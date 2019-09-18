@@ -57,7 +57,7 @@ def scope_detection(word_pos_list, neg_id):
 def negation_detection(strr):
     strr = strr.lower()
     wordlist = word_tokenize(strr)
-    nltk_neg_mark_list = mark_negation(wordlist))
+    nltk_neg_mark_list = mark_negation(wordlist)
     nltk_start = -1
     nltk_end =-1
 
