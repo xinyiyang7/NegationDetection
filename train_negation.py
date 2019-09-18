@@ -77,7 +77,7 @@ class NegationModel(BertPreTrainedModel):
         else:
             '''testing'''
             # pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2),dim=2)
-            pred_cue_labels = nn.Sigmoid()(logits_cue) > 0.2
+            pred_cue_labels = nn.Sigmoid()(logits_cue) > 0.5
             # print(pred_cue_labels.shape)
 
             scope_input_tensor = torch.cat((sequence_output, pred_cue_labels.float()), 2)
@@ -485,10 +485,10 @@ def main():
                                     break
                                 else:
                                     temp_1.append(label_map[label_ids[i][j]])
-                                    temp_2.append(logits[i][j][0]>0.2)
+                                    temp_2.append(1 if logits[i][j][0]>0.5 else 0)
                         task+=1
 
-                print('y_pred_cue:', y_pred_cue)
+                # print('y_pred_cue:', y_pred_cue)
                 report_cue = classification_report(y_true_cue, y_pred_cue,digits=4)
                 logger.info("\ncue%s", report_cue)
                 report_scope = classification_report(y_true_scope, y_pred_scope,digits=4)
