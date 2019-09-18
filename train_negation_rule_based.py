@@ -1,6 +1,6 @@
 import nltk
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 
@@ -8,6 +8,7 @@ NEGATION_ADVERBS = ["no", "without", "nil","not", "n't", "never", "none", "neith
 NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
 
 def scope_detection(word_pos_list, neg_id):
+    print(word_pos_list,  neg_id)
     indictors = []
     for pair in word_pos_list:
         if pair[1] in set(['JJ', 'JJR', 'JJS', 'RB', 'RBR', 'RBS', 'TO', 'IN', 'VB','VBD','VBG','VBN','VBP','VBZ']):
@@ -15,6 +16,7 @@ def scope_detection(word_pos_list, neg_id):
         else:
             indictors.append(0)
 
+    print('indictors:', indictors)
     left_most = neg_id-1
     while indictors[left_most] !=1:
         left_most-=1
@@ -22,6 +24,8 @@ def scope_detection(word_pos_list, neg_id):
     while indictors[right_most] !=1:
         right_most+=1
 
+    print('left_most:',left_most)
+    print('right_most:',right_most)
     scope_list = []
     if neg_id - left_most > right_most - neg_id:
         for i in range(right_most, len(word_pos_list)):
