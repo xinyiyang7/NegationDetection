@@ -5,6 +5,7 @@ from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 from nltk.sentiment.util import mark_negation
 import codecs
+import argparse
 
 NEGATION_ADVERBS = ["no", "without", "nil","not", "n't", "never", "none", "neith", "nor", "non"]
 NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
@@ -95,6 +96,15 @@ def negation_detection(strr):
 
 
 if __name__ == "__main__":
-    sents = ['we do not like the dog.', 'I hate to eat egg', 'today is very good', 'i am unhappy today, so I would not go there.']
-    for sent in sents:
-        negation_detection(sent)
+    parser = argparse.ArgumentParser()
+
+    ## Required parameters
+    parser.add_argument("--input",
+                        default=None,
+                        type=str,
+                        required=True,
+                        help="please type a sentence here")
+    args = parser.parse_args()
+    # sents = ['we do not like the dog.', 'I hate to eat egg', 'today is very good', 'i am unhappy today, so I would not go there.']
+    # for sent in sents:
+    negation_detection(args.input)
