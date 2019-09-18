@@ -61,4 +61,4 @@ def negation_detection(strr):
 
 if __name__ == "__main__":
     sents = ['we do not like the dog.', 'I hate to eat egg']
-    negation_detection('we do not like the dog.')
+    negation_detection('I hate to eat egg.')
