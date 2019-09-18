@@ -71,7 +71,7 @@ def negation_detection(strr):
         nltk_find = True
     else:
         nltk_find = False
-
+    print('nltk_find:', nltk_find)
     word_pos_list = pos_tag(wordlist)
     # print('wordlist:', wordlist)
     # print('word_pos_list:', word_pos_list)
