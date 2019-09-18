@@ -33,12 +33,14 @@ def scope_detection(word_pos_list, neg_id):
     while indictors[right_most] !=1:
         right_most+=1
 
-    print('left_most:',left_most)
-    print('right_most:',right_most)
+    # print('left_most:',left_most)
+    # print('right_most:',right_most)
     scope_list = []
     for i in range(right_most, len(word_pos_list)):
         if indictors[i] == 1:
             scope_list.append(word_pos_list[i][0])
+        else:
+            break
     # if neg_id - left_most > right_most - neg_id:
     #     for i in range(right_most, len(word_pos_list)):
     #         if word_pos_list[right_most][1] == 1:
@@ -47,9 +49,10 @@ def scope_detection(word_pos_list, neg_id):
     #     for i in range(left_most, -1, -1):
     #         if word_pos_list[left_most][1] == 1:
     #             scope_list.append(word_pos_list[left_most][0])
-    print('scope:', scope_list)
+    return (right_most, i)
 
 def negation_detection(strr):
+    strr = strr.lower()
     wordlist = word_tokenize(strr)
     print('mark_negation:', mark_negation(wordlist))
     word_pos_list = pos_tag(wordlist)
@@ -61,7 +64,8 @@ def negation_detection(strr):
         pos = pair[1]
         if word in set(NEGATION_ADVERBS) or word in set(NEGATION_VERBS)  or word in  neg_word_set or word[:2] == 'un' or word[:3]=='dis':
             print('negate word:', word)
-            scope_detection(word_pos_list, id)
+            scope_tuple = scope_detection(word_pos_list, id)
+            print('scope:', wordlist[scope_tuple[0]: scope_tuple[1]])
 
 
 
@@ -69,4 +73,5 @@ def negation_detection(strr):
 
 if __name__ == "__main__":
     sents = ['we do not like the dog.', 'I hate to eat egg']
-    negation_detection('I hate to eat egg.')
+    for sent in sents:
+        negation_detection(sent)
