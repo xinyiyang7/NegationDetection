@@ -84,9 +84,10 @@ def negation_detection(strr):
         word = pair[0]
         pos = pair[1]
         if word in set(NEGATION_ADVERBS) or word in set(NEGATION_VERBS)  or word in  neg_word_set or word[:2] == 'un' or word[:3]=='dis':
-            print('negate word:', word)
+            print('negate word:', word.encode('utf-8'))
             scope_tuple = scope_detection(word_pos_list, id)
-            print('scope:', wordlist[scope_tuple[0]: scope_tuple[1]])
+            print('scope:', str(wordlist[scope_tuple[0]:
+                                         scope_tuple[1]]).encode("utf-8"))
             return_triples.append([id, scope_tuple[0],scope_tuple[1]])
             fine_negation = True
     if fine_negation is False and nltk_find is False:
