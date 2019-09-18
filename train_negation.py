@@ -78,6 +78,7 @@ class NegationModel(BertPreTrainedModel):
             '''testing'''
             # pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2),dim=2)
             pred_cue_labels = nn.Sigmoid()(logits_cue) > 0.2
+            print(pred_cue_labels.shape)
 
             scope_input_tensor = torch.cat((sequence_output, pred_cue_labels[:,:, None].float()), 2)
 
