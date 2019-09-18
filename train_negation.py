@@ -488,6 +488,7 @@ def main():
                                     temp_2.append(logits[i][j][0]>0.2)
                         task+=1
 
+                print('y_pred_cue:', y_pred_cue)
                 report_cue = classification_report(y_true_cue, y_pred_cue,digits=4)
                 logger.info("\ncue%s", report_cue)
                 report_scope = classification_report(y_true_scope, y_pred_scope,digits=4)
