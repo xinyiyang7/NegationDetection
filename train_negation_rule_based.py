@@ -3,6 +3,7 @@ import nltk
 # nltk.download('averaged_perceptron_tagger')
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
+from nltk.sentiment.util import mark_negation
 
 NEGATION_ADVERBS = ["no", "without", "nil","not", "n't", "never", "none", "neith", "nor", "non"]
 NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
@@ -42,6 +43,7 @@ def scope_detection(word_pos_list, neg_id):
 
 def negation_detection(strr):
     wordlist = word_tokenize(strr)
+    print('mark_negation:', mark_negation(wordlist))
     word_pos_list = pos_tag(wordlist)
     # print('wordlist:', wordlist)
     # print('word_pos_list:', word_pos_list)
@@ -58,4 +60,5 @@ def negation_detection(strr):
 
 
 if __name__ == "__main__":
+    sents = ['we do not like the dog.', 'I hate to eat egg']
     negation_detection('we do not like the dog.')
