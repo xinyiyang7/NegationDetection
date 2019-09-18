@@ -23,7 +23,8 @@ from pytorch_transformers.optimization import AdamW
 from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 
-from seqeval.metrics import classification_report
+# from seqeval.metrics import classification_report
+from sklearn.metrics import f1_score
 from torch import nn
 from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
@@ -490,12 +491,16 @@ def main():
 
                 # print('y_pred_cue:', y_pred_cue)
                 # print('y_true_cue:', y_true_cue)
-                report_cue = classification_report(y_true_cue, y_pred_cue,digits=4)
-                logger.info("\ncue%s", report_cue)
-                # print('y_pred_scope:', y_pred_scope)
-                report_scope = classification_report(y_true_scope, y_pred_scope,digits=4)
-                logger.info("\nscope%s", report_scope)
-
+                f1_cue = 0.0
+                for true_cue_list, pred_cue_list in zip(y_true_cue, y_pred_cue):
+                    f1_cue+=f1_score(true_cue_list, pred_cue_list, pos_label='1')
+                f1_cue/=len(y_true_cue)
+                print('cue f1:', f1_cue)
+                f1_scope = 0.0
+                for true_scope_list, pred_scope_list in zip(y_true_scope, y_pred_scope):
+                    f1_scope+=f1_score(true_scope_list, pred_scope_list, pos_label='1')
+                f1_scope/=len(y_true_scope)
+                print('scope f1:', f1_scope)
 
 
 if __name__ == "__main__":
