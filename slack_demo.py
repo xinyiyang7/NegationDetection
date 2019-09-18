@@ -1,7 +1,7 @@
 from train_negation_rule_based import negation_detection
 import slack
 
-TOKEN = 'xoxb-2697178204-767073812439-nzs3xKsDkHcDuaQMhiBTrRnX'
+TOKEN = 'xoxb-2697178204-767073812439-lW5sSIwC5TpSIGPLvYaQM9BR'
 CHANNEL = 'CNGRS491S' #negation channel
 # CHANNEL = 'CM724LKBM' #xinyi-test
 # CHANNEL_ = 'xinyi-test'
