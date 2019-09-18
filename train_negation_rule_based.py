@@ -10,8 +10,8 @@ NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
 def scope_detection(word_pos_list, neg_id):
     print(word_pos_list,  neg_id)
     indictors = []
-    for pair in word_pos_list:
-        if pair[1] in set(['JJ', 'JJR', 'JJS', 'RB', 'RBR', 'RBS', 'TO', 'IN', 'VB','VBD','VBG','VBN','VBP','VBZ']):
+    for id, pair in enumerate(word_pos_list):
+        if pair[1] in set(['JJ', 'JJR', 'JJS', 'RB', 'RBR', 'DT', 'NN','RBS', 'TO', 'IN', 'VB','VBD','VBG','VBN','VBP','VBZ']) and id !=neg_id:
             indictors.append(1)
         else:
             indictors.append(0)
@@ -27,14 +27,17 @@ def scope_detection(word_pos_list, neg_id):
     print('left_most:',left_most)
     print('right_most:',right_most)
     scope_list = []
-    if neg_id - left_most > right_most - neg_id:
-        for i in range(right_most, len(word_pos_list)):
-            if word_pos_list[right_most][1] == 1:
-                scope_list.append(word_pos_list[right_most][0])
-    else:
-        for i in range(left_most, -1, -1):
-            if word_pos_list[left_most][1] == 1:
-                scope_list.append(word_pos_list[left_most][0])
+    for i in range(right_most, len(word_pos_list)):
+        if word_pos_list[right_most][1] == 1:
+            scope_list.append(word_pos_list[right_most][0])
+    # if neg_id - left_most > right_most - neg_id:
+    #     for i in range(right_most, len(word_pos_list)):
+    #         if word_pos_list[right_most][1] == 1:
+    #             scope_list.append(word_pos_list[right_most][0])
+    # else:
+    #     for i in range(left_most, -1, -1):
+    #         if word_pos_list[left_most][1] == 1:
+    #             scope_list.append(word_pos_list[left_most][0])
     print('scope:', scope_list)
 
 def negation_detection(strr):
