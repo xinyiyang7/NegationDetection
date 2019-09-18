@@ -66,7 +66,8 @@ def negation_detection(strr):
             nltk_end = idd
             if nltk_start == -1:
                 nltk_start = idd
-    nltk_end+=1
+    if nltk_end !=-1:
+        nltk_end+=1
     if nltk_end > nltk_start:
         nltk_find = True
     else:
