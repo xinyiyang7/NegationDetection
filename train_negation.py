@@ -486,7 +486,7 @@ def main():
                                     break
                                 else:
                                     temp_1.append(label_map[label_ids[i][j]])
-                                    temp_2.append('1' if logits[i][j][0]>0.5 else '0')
+                                    temp_2.append('1' if logits[i][j][0]>0.3 else '0')
                         task+=1
 
                 # print('y_pred_cue:', y_pred_cue)
