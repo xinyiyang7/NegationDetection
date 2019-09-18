@@ -182,9 +182,11 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
     '''
     '''
     ["O", "B-MISC", "I-MISC",  "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "[CLS]", "[SEP]"]
+    ['0','1']
     '''
     '''label index 0 is kept for padding fake labels'''
-    label_map = {label : i for i, label in enumerate(label_list,1)}
+    # label_map = {label : i for i, label in enumerate(label_list,1)}
+    label_map = {label : i for i, label in enumerate(label_list)}
 
     features = []
     for (ex_index,example) in enumerate(examples):
@@ -228,10 +230,13 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         '''add special token in the beginning'''
         ntokens.append("[CLS]")
         segment_ids.append(0)
-        cue_label_ids.append(label_map["[CLS]"])
-        scope_label_ids.append(label_map["[CLS]"])
-        valid.insert(0,1)
-        label_mask.insert(0,1)
+        # cue_label_ids.append(label_map["[CLS]"])
+        # scope_label_ids.append(label_map["[CLS]"])
+        '''#we do not think the pad token is valid to train'''
+        cue_label_ids.append(0)
+        scope_label_ids.append(0)
+        valid.insert(0,0)
+        label_mask.insert(0,0)
 
         for i, token in enumerate(tokens):
             ntokens.append(token)
@@ -243,10 +248,10 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
         '''add special token in the end'''
         ntokens.append("[SEP]")
         segment_ids.append(0)
-        valid.append(1)
-        label_mask.append(1)
-        cue_label_ids.append(label_map["[SEP]"])
-        scope_label_ids.append(label_map["[SEP]"])
+        valid.append(0)
+        label_mask.append(0)
+        cue_label_ids.append(0)
+        scope_label_ids.append(0)
 
         input_ids = tokenizer.convert_tokens_to_ids(ntokens)
         input_mask = [1] * len(input_ids)
@@ -260,7 +265,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
             cue_label_ids.append(0) #pad 0, it shows why regular labels start from 1
             scope_label_ids.append(0) #pad 0, it shows why regular labels start from 1
             '''???why valid is 1 rather than 0'''
-            valid.append(1)
+            valid.append(0)
             label_mask.append(0)
         while len(cue_label_ids) < max_seq_length:
             cue_label_ids.append(0)

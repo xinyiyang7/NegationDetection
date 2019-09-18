@@ -25,7 +25,7 @@ from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 from seqeval.metrics import classification_report
 from torch import nn
-from torch.nn import CrossEntropyLoss
+from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
                               TensorDataset)
 from torch.utils.data.distributed import DistributedSampler
@@ -76,26 +76,27 @@ class NegationModel(BertPreTrainedModel):
             scope_input_tensor = torch.cat((sequence_output, cue_labels[:,:, None].float()), 2)
         else:
             '''testing'''
-            pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2)[:,:,1:],dim=2)+1
+            pred_cue_labels = torch.argmax(F.log_softmax(logits_cue,dim=2),dim=2)
             scope_input_tensor = torch.cat((sequence_output, pred_cue_labels[:,:, None].float()), 2)
 
         logits_scope = self.classifier_scope(scope_input_tensor) # batch, max_len, 4+1?
 
 
         if cue_labels is not None:
-            loss_fct = CrossEntropyLoss(ignore_index=0)
+            # loss_fct = CrossEntropyLoss(ignore_index=0)
+            loss_fct = torch.nn.BCEWithLogitsLoss()
             # Only keep active parts of the loss
             # attention_mask_label = None
             if attention_mask_label is not None:
                 active_loss = attention_mask_label.view(-1) == 1
-                '''select the prob vector of corresponding words'''
-                active_logits_cue = logits_cue.view(-1, self.num_labels)[active_loss]
+                '''select the prob of label 1'''
+                active_logits_cue = logits_cue.view(-1, self.num_labels)[:,1][active_loss]
                 '''select the gold label of corresponding words'''
                 active_labels_cue = cue_labels.view(-1)[active_loss]
                 loss_cue = loss_fct(active_logits_cue, active_labels_cue)
 
                 '''scope loss'''
-                active_logits_scope = logits_scope.view(-1, self.num_labels)[active_loss]
+                active_logits_scope = logits_scope.view(-1, self.num_labels)[:,1][active_loss]
                 '''select the gold label of corresponding words'''
                 active_labels_scope = scope_labels.view(-1)[active_loss]
                 loss_scope = loss_fct(active_logits_scope, active_labels_scope)
@@ -200,7 +201,8 @@ class NerProcessor(DataProcessor):
             self._read_tsv(os.path.join(data_dir, "test.txt")), "test")
 
     def get_labels(self):
-        return ['0','1', '[CLS]','[SEP]']
+        # return ['0','1', '[CLS]','[SEP]']
+        return ['0','1']
 
     def _create_examples(self,lines,set_type):
         examples = []
@@ -332,7 +334,7 @@ def main():
 
     processor = processors[task_name]()
     label_list = processor.get_labels()
-    num_labels = len(label_list) + 1 #consider the 0 for padded label
+    num_labels = len(label_list)# + 1 #consider the 0 for padded label
 
 
     pretrain_model_dir = 'bert-base-uncased'
@@ -454,10 +456,10 @@ def main():
 
                     for logits, label_ids in zip([logits_cue, logits_scope], [cue_label_ids, scope_label_ids]):
                         '''we do not want the predicted max label index is 0'''
-                        logits = torch.argmax(F.log_softmax(logits,dim=2)[:,:,1:],dim=2)+1 #(batch, max_len)
+                        logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
                         logits = logits.detach().cpu().numpy()
                         label_ids = label_ids.to('cpu').numpy()#(batch, max_len)
-                        # input_mask = input_mask.to('cpu').numpy()#(batch, max_len)
+                        l_mask = l_mask.to('cpu').numpy()#(batch, max_len)
 
                         for i, label in enumerate(label_ids):
                             '''each sentence'''
@@ -467,7 +469,7 @@ def main():
                                 '''each word'''
                                 if j == 0: # is a pad
                                     continue
-                                elif label_ids[i][j] == len(label_map):
+                                elif l_mask[i][j] == 0:
                                     '''this means the gold label is [SEP], the end of sent'''
                                     y_true.append(temp_1)
                                     y_pred.append(temp_2)
