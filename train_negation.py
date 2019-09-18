@@ -486,7 +486,7 @@ def main():
                                     break
                                 else:
                                     temp_1.append(label_map[label_ids[i][j]])
-                                    temp_2.append('1' if logits[i][j][0]>0.2 else '0')
+                                    temp_2.append('1' if logits[i][j][0]>0.5 else '0')
                         task+=1
 
                 # print('y_pred_cue:', y_pred_cue)
@@ -495,12 +495,12 @@ def main():
                 for true_cue_list, pred_cue_list in zip(y_true_cue, y_pred_cue):
                     f1_cue+=f1_score(true_cue_list, pred_cue_list, pos_label='1')
                 f1_cue/=len(y_true_cue)
-                print('cue f1:', f1_cue)
+                print('\ncue f1:', f1_cue)
                 f1_scope = 0.0
                 for true_scope_list, pred_scope_list in zip(y_true_scope, y_pred_scope):
                     f1_scope+=f1_score(true_scope_list, pred_scope_list, pos_label='1')
                 f1_scope/=len(y_true_scope)
-                print('scope f1:', f1_scope)
+                print('scope f1:', f1_scope,'\n')
 
 
 if __name__ == "__main__":
