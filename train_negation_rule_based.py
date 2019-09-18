@@ -79,6 +79,7 @@ def negation_detection(strr):
     # print('word_pos_list:', word_pos_list)
     assert len(wordlist) ==  len(word_pos_list)
     fine_negation = False
+    return_triples = []
     for id, pair in enumerate(word_pos_list):
         word = pair[0]
         pos = pair[1]
@@ -86,10 +87,12 @@ def negation_detection(strr):
             print('negate word:', word)
             scope_tuple = scope_detection(word_pos_list, id)
             print('scope:', wordlist[scope_tuple[0]: scope_tuple[1]])
+            return_triples.append([id, scope_tuple[0],scope_tuple[1]])
             fine_negation = True
     if fine_negation is False and nltk_find is False:
         print('no negation detected')
-
+        return_triples.append([-1, -1, -1])
+    return return_triples
 
 
 
@@ -107,4 +110,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # sents = ['we do not like the dog.', 'I hate to eat egg', 'today is very good', 'i am unhappy today, so I would not go there.']
     # for sent in sents:
-    negation_detection(args.input)
+    print(negation_detection(args.input))
