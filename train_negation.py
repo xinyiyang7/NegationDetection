@@ -459,7 +459,7 @@ def main():
                         logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
                         logits = logits.detach().cpu().numpy()
                         label_ids = label_ids.to('cpu').numpy()#(batch, max_len)
-                        l_mask = l_mask.to('cpu').numpy()#(batch, max_len)
+                        # l_mask = l_mask.to('cpu').numpy()#(batch, max_len)
 
                         for i, label in enumerate(label_ids):
                             '''each sentence'''
