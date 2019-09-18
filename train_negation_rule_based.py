@@ -49,8 +49,10 @@ def scope_detection(word_pos_list, neg_id):
     #     for i in range(left_most, -1, -1):
     #         if word_pos_list[left_most][1] == 1:
     #             scope_list.append(word_pos_list[left_most][0])
-    print('i', i)
-    return (right_most, i)
+    if i = len(word_pos_list)-1:
+        return (right_most, i+1)
+    else:
+        return (right_most, i)
 
 def negation_detection(strr):
     strr = strr.lower()
