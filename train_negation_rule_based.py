@@ -8,6 +8,13 @@ from nltk.sentiment.util import mark_negation
 NEGATION_ADVERBS = ["no", "without", "nil","not", "n't", "never", "none", "neith", "nor", "non"]
 NEGATION_VERBS = ["deny", "reject", "refuse", "subside", "retract", "non"]
 
+neg_word_set = []
+readfile = codecs.open('negative_words.txt', 'r', 'utf-8')
+for line in readfile:
+    neg_word_set.append(line.strip())
+neg_word_set= set(neg_word_set)
+readfile.close()
+
 def scope_detection(word_pos_list, neg_id):
     print(word_pos_list,  neg_id)
     indictors = []
@@ -51,7 +58,7 @@ def negation_detection(strr):
     for id, pair in enumerate(word_pos_list):
         word = pair[0]
         pos = pair[1]
-        if word in set(NEGATION_ADVERBS) or word in set(NEGATION_VERBS) or word[:2] == 'un' or word[:3]=='dis':
+        if word in set(NEGATION_ADVERBS) or word in set(NEGATION_VERBS)  or word in  neg_word_set or word[:2] == 'un' or word[:3]=='dis':
             print('negate word:', word)
             scope_detection(word_pos_list, id)
 
