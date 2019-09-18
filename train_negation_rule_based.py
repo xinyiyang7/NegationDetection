@@ -92,7 +92,7 @@ def negation_detection(strr):
     if fine_negation is False and nltk_find is False:
         print('no negation detected')
         return_triples.append([-1, -1, -1])
-    return return_triples
+    return wordlist, return_triples
 
 
 
