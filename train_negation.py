@@ -435,8 +435,10 @@ def main():
                 model.eval()
                 eval_loss, eval_accuracy = 0, 0
                 nb_eval_steps, nb_eval_examples = 0, 0
-                y_true = []
-                y_pred = []
+                y_true_cue = []
+                y_pred_cue = []
+                y_true_scope = []
+                y_pred_scope = []
                 label_map = {i : label for i, label in enumerate(label_list)}
                 for input_ids, input_mask, segment_ids, cue_label_ids,scope_label_ids,valid_ids,l_mask in tqdm(eval_dataloader, desc="Evaluating"):
                     input_ids = input_ids.to(device)
@@ -453,7 +455,7 @@ def main():
                         '''
                         logits_cue, logits_scope = model(input_ids, segment_ids, input_mask,valid_ids=valid_ids,attention_mask_label=l_mask)
 
-
+                    task = 0
                     for logits, label_ids in zip([logits_cue, logits_scope], [cue_label_ids, scope_label_ids]):
                         '''we do not want the predicted max label index is 0'''
                         logits = torch.argmax(F.log_softmax(logits,dim=2),dim=2) #(batch, max_len)
@@ -471,20 +473,23 @@ def main():
                                     continue
                                 elif l_mask[i][j] == 0:
                                     '''this means the gold label is [SEP], the end of sent'''
-                                    y_true.append(temp_1)
-                                    y_pred.append(temp_2)
+                                    if task == 0:
+                                        y_true_cue.append(temp_1)
+                                        y_pred_cue.append(temp_2)
+                                    else:
+                                        y_true_scope.append(temp_1)
+                                        y_pred_scope.append(temp_2)
                                     break
                                 else:
                                     temp_1.append(label_map[label_ids[i][j]])
                                     temp_2.append(label_map[logits[i][j]])
+                        task+=1
 
-                report = classification_report(y_true, y_pred,digits=4)
-                logger.info("\n%s", report)
-                output_eval_file = os.path.join(args.output_dir, "eval_results.txt")
-                with open(output_eval_file, "w") as writer:
-                    logger.info("***** Eval results *****")
-                    logger.info("\n%s", report)
-                    writer.write(report)
+                report_cue = classification_report(y_true_cue, y_pred_cue,digits=4)
+                logger.info("\ncue%s", report_cue)
+                report_scope = classification_report(y_true_scope, y_pred_scope,digits=4)
+                logger.info("\nscope%s", report_scope)
+
 
 
 if __name__ == "__main__":
