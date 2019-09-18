@@ -17,7 +17,7 @@ neg_word_set= set(neg_word_set)
 readfile.close()
 
 def scope_detection(word_pos_list, neg_id):
-    print(word_pos_list,  neg_id)
+    # print(word_pos_list,  neg_id)
     indictors = []
     for id, pair in enumerate(word_pos_list):
         if pair[1] in set(['JJ', 'JJR', 'JJS', 'RB', 'RBR', 'DT', 'NN','RBS', 'TO', 'IN', 'VB','VBD','VBG','VBN','VBP','VBZ']) and id !=neg_id:
@@ -25,7 +25,7 @@ def scope_detection(word_pos_list, neg_id):
         else:
             indictors.append(0)
 
-    print('indictors:', indictors)
+    # print('indictors:', indictors)
     left_most = neg_id-1
     while indictors[left_most] !=1:
         left_most-=1
